@@ -560,30 +560,42 @@
 
   // ─── Step UI helpers ──────────────────────────────────────────────────────
   function setStep(n, state, message) {
-    const row   = document.getElementById(`step-${n}`);
-    const icon  = row.querySelector('.step-icon');
-    const badge = row.querySelector('.step-badge');
+    const row = document.getElementById(`step-${n}`);
+    if (!row) return;
+    const icon    = row.querySelector('.step-icon');
+    let   badge   = row.querySelector('.step-badge');
+    let   spinner = row.querySelector('.step-spinner');
 
-    row.className   = `step-row ${state}`;
-    icon.className  = `step-icon ${state}`;
-    badge.className = `step-badge ${state}`;
+    row.className = `step-row ${state}`;
+    if (icon) icon.className = `step-icon ${state}`;
 
     const LABELS = { pending:'Pending', active:'Running…', complete:'Done', error:'Failed' };
-    badge.textContent = message || LABELS[state] || state;
+    const labelText = message || LABELS[state] || state;
 
-    // Replace spinner or badge
-    let spinner = row.querySelector('.step-spinner');
     if (state === 'active') {
+      // Replace badge with spinner (only once)
       if (!spinner) {
-        spinner = document.createElement('div');
-        spinner.className = 'step-spinner';
-        badge.replaceWith(spinner);
+        const s = document.createElement('div');
+        s.className = 'step-spinner';
+        if (badge) badge.replaceWith(s);
+        else row.appendChild(s);
       }
-    } else if (spinner) {
-      const newBadge = document.createElement('span');
-      newBadge.className = `step-badge ${state}`;
-      newBadge.textContent = LABELS[state] || state;
-      spinner.replaceWith(newBadge);
+    } else {
+      // Replace spinner with badge, or update existing badge
+      if (spinner) {
+        const b = document.createElement('span');
+        b.className = `step-badge ${state}`;
+        b.textContent = labelText;
+        spinner.replaceWith(b);
+      } else if (badge) {
+        badge.className = `step-badge ${state}`;
+        badge.textContent = labelText;
+      } else {
+        const b = document.createElement('span');
+        b.className = `step-badge ${state}`;
+        b.textContent = labelText;
+        row.appendChild(b);
+      }
     }
   }
 
@@ -674,7 +686,7 @@
   }
 
   function handleStatus(data) {
-    const status  = data.status;
+    const status  = (data.status || '').toLowerCase();
     const message = data.message || '';
     const stepIdx = STATUS_STEP[status] ?? 0;
 
