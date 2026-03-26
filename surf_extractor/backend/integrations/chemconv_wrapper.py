@@ -48,11 +48,22 @@ def _get_cas_client():
 
 
 def _iupac_to_smiles(name: str) -> Optional[str]:
+    # Try ChemConverter's converter first (may not be available)
     try:
         from converters import iupac_to_kekule_smiles  # noqa: PLC0415
-        return iupac_to_kekule_smiles(name)
+        result = iupac_to_kekule_smiles(name)
+        if result:
+            return result
+    except Exception:
+        pass
+
+    # Fallback: CIRpy directly (calls CAS Chemical Identifier Resolver web service)
+    try:
+        import cirpy  # noqa: PLC0415
+        smiles = cirpy.resolve(name, "smiles")
+        return smiles or None
     except Exception as exc:
-        logger.warning("iupac_to_kekule_smiles failed for '%s': %s", name, exc)
+        logger.warning("CIRpy resolution failed for '%s': %s", name, exc)
         return None
 
 
