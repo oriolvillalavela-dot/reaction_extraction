@@ -15,13 +15,20 @@ logger = logging.getLogger(__name__)
 # Configuration (read from environment variables with sensible defaults)
 # ---------------------------------------------------------------------------
 
-RCN_BASE_URL = os.getenv("GALILEO_RCN_ENDPOINT", "https://us.aigw.galileo.roche.com/v1")
-WAF_BASE_URL = os.getenv("GALILEO_WAF_ENDPOINT", "https://waf-us.aigw.galileo.roche.com/v1")
-HEALTH_URL = os.getenv("PORTKEY_HEALTH_URL", "https://us.aigw.galileo.roche.com/v1/health")
-MODEL_ID = os.getenv("PORTKEY_MODEL_ID", "gemini-2.5-pro")
-PORTKEY_API_KEY = os.getenv("PORTKEY_API_KEY", "")
-TIMEOUT_SECONDS = float(os.getenv("PORTKEY_TIMEOUT", "120"))
-MAX_TOKENS = int(os.getenv("PORTKEY_MAX_TOKENS", "8192"))
+_RCN_DEFAULT = "https://us.aigw.galileo.roche.com/v1"
+_WAF_DEFAULT  = "https://waf-us.aigw.galileo.roche.com/v1"
+
+
+def _cfg():
+    """Read config fresh from env each time (supports late load_dotenv calls)."""
+    return {
+        "api_key":  os.getenv("PORTKEY_API_KEY", ""),
+        "rcn_url":  os.getenv("GALILEO_RCN_ENDPOINT", _RCN_DEFAULT),
+        "waf_url":  os.getenv("GALILEO_WAF_ENDPOINT", _WAF_DEFAULT),
+        "model":    os.getenv("PORTKEY_MODEL_ID", "gemini-2.5-pro"),
+        "timeout":  float(os.getenv("PORTKEY_TIMEOUT", "120")),
+        "max_tokens": int(os.getenv("PORTKEY_MAX_TOKENS", "8192")),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -37,17 +44,19 @@ class PortKeyClient:
 
     def __init__(
         self,
-        api_key: str = PORTKEY_API_KEY,
-        model: str = MODEL_ID,
-        rcn_url: str = RCN_BASE_URL,
-        waf_url: str = WAF_BASE_URL,
-        timeout: float = TIMEOUT_SECONDS,
+        api_key: Optional[str] = None,
+        model: Optional[str] = None,
+        rcn_url: Optional[str] = None,
+        waf_url: Optional[str] = None,
+        timeout: Optional[float] = None,
     ):
-        self.api_key = api_key
-        self.model = model
-        self.rcn_url = rcn_url.rstrip("/")
-        self.waf_url = waf_url.rstrip("/")
-        self.timeout = timeout
+        cfg = _cfg()
+        self.api_key = api_key if api_key is not None else cfg["api_key"]
+        self.model   = model   if model   is not None else cfg["model"]
+        self.rcn_url = (rcn_url if rcn_url is not None else cfg["rcn_url"]).rstrip("/")
+        self.waf_url = (waf_url if waf_url is not None else cfg["waf_url"]).rstrip("/")
+        self.timeout = timeout if timeout is not None else cfg["timeout"]
+        self._max_tokens = cfg["max_tokens"]
 
     def _get_portkey(self, base_url: str):
         try:
@@ -65,7 +74,7 @@ class PortKeyClient:
     def chat(
         self,
         messages: list[dict],
-        max_tokens: int = MAX_TOKENS,
+        max_tokens: Optional[int] = None,
         temperature: float = 0.0,
         extra: Optional[dict] = None,
     ) -> str:
@@ -77,7 +86,7 @@ class PortKeyClient:
             model=self.model,
             messages=messages,
             temperature=temperature,
-            max_tokens=max_tokens,
+            max_tokens=max_tokens if max_tokens is not None else self._max_tokens,
         )
         if extra:
             kwargs.update(extra)
@@ -127,12 +136,6 @@ def build_image_message_content(text: str, images: list[dict]) -> list[dict]:
     return content
 
 
-# Singleton convenience instance (created lazily to respect env vars)
-_default_client: Optional[PortKeyClient] = None
-
-
 def get_client() -> PortKeyClient:
-    global _default_client
-    if _default_client is None:
-        _default_client = PortKeyClient()
-    return _default_client
+    """Return a fresh client (reads env vars at call time)."""
+    return PortKeyClient()

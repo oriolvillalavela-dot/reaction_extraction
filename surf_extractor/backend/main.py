@@ -13,6 +13,10 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+
+# Load .env before anything else reads environment variables
+from dotenv import load_dotenv
+load_dotenv()
 import uuid
 import tempfile
 from pathlib import Path
