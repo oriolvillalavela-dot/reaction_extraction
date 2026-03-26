@@ -113,34 +113,39 @@ following the SURF format described in the system prompt.
         # Use vision if images are present (cap at 20 to stay within context limits)
         capped_images = images[:20]
 
+        # Gemini 2.5 Pro uses thinking tokens internally; use a large budget
+        # so thinking doesn't crowd out the actual JSON output.
         if capped_images:
             raw = self._chat_with_images(
                 system=EXTRACTION_SYSTEM_PROMPT,
                 text=user_message,
                 images=capped_images,
-                max_tokens=8192,
+                max_tokens=65536,
                 temperature=0.0,
             )
         else:
             raw = self._chat(
                 system=EXTRACTION_SYSTEM_PROMPT,
                 user=user_message,
-                max_tokens=8192,
+                max_tokens=65536,
                 temperature=0.0,
             )
 
         return self._parse_json_response(raw)
 
     def _parse_json_response(self, raw: str) -> list[dict]:
-        """Extract JSON array from LLM response, tolerating markdown fences."""
+        """Extract JSON array from LLM response, tolerating markdown fences and truncation."""
         # Strip markdown code fences if present
-        cleaned = re.sub(r"```(?:json)?\s*", "", raw).strip().rstrip("```").strip()
+        cleaned = re.sub(r"```(?:json)?\s*", "", raw).strip().rstrip("`").strip()
 
-        # Find the outermost JSON array
-        match = re.search(r"\[.*\]", cleaned, re.DOTALL)
-        if match:
-            cleaned = match.group(0)
+        # Find the outermost JSON array start
+        start = cleaned.find("[")
+        if start == -1:
+            self.logger.error("No JSON array found in response.\nRaw (first 2000 chars):\n%s", raw[:2000])
+            return []
+        cleaned = cleaned[start:]
 
+        # Try parsing as-is first
         try:
             data = json.loads(cleaned)
             if isinstance(data, list):
@@ -148,6 +153,43 @@ following the SURF format described in the system prompt.
             if isinstance(data, dict):
                 return [data]
         except json.JSONDecodeError as exc:
-            self.logger.error("JSON parse failed: %s\nRaw (first 2000 chars):\n%s", exc, raw[:2000])
+            self.logger.warning("JSON parse failed (%s) – attempting truncation recovery…", exc)
 
-        return []
+        # Recovery: extract all complete {...} objects from the array
+        results = []
+        depth = 0
+        obj_start = None
+        i = 0
+        in_string = False
+        escape_next = False
+        while i < len(cleaned):
+            ch = cleaned[i]
+            if escape_next:
+                escape_next = False
+            elif ch == "\\" and in_string:
+                escape_next = True
+            elif ch == '"':
+                in_string = not in_string
+            elif not in_string:
+                if ch == "{":
+                    if depth == 0:
+                        obj_start = i
+                    depth += 1
+                elif ch == "}":
+                    depth -= 1
+                    if depth == 0 and obj_start is not None:
+                        try:
+                            obj = json.loads(cleaned[obj_start:i + 1])
+                            if isinstance(obj, dict):
+                                results.append(obj)
+                        except json.JSONDecodeError:
+                            pass
+                        obj_start = None
+            i += 1
+
+        if results:
+            self.logger.info("Truncation recovery extracted %d reaction(s).", len(results))
+        else:
+            self.logger.error("JSON parse failed completely.\nRaw (first 2000 chars):\n%s", raw[:2000])
+
+        return results
