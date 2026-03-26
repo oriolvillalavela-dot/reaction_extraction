@@ -94,7 +94,7 @@ class CoordinatorAgent:
             # ------------------------------------------------------------------ #
             # Step 2: Extraction Agent
             # ------------------------------------------------------------------ #
-            _emit("extracting", "Running Extraction Agent (Gemini 2.5 Pro via PortKey)…")
+            _emit("extracting", "Running Extraction Agent – chunked pass over full text…")
 
             extracted_rows = self.extraction_agent.run(
                 main_text=main_text,
@@ -102,7 +102,7 @@ class CoordinatorAgent:
                 images=images,
                 user_instructions=user_instructions,
             )
-            _emit("extracting", f"Extraction Agent returned {len(extracted_rows)} reaction rows.")
+            _emit("extracting", f"Extraction complete: {len(extracted_rows)} reaction rows found.")
 
             if not extracted_rows:
                 return "", ["Extraction Agent returned no reaction data."]
