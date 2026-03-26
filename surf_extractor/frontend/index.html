@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SURF Extractor – Multi-Agent Chemical Reaction Extractor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@latest/font/lucide.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F5F4F1;
+      --surface: #FFFFFF;
+      --surface-2: #FAFAF8;
+      --surface-muted: #EDECEA;
+      --border: #E5E4E1;
+      --border-strong: #D1D0CD;
+      --text-primary: #1A1918;
+      --text-secondary: #6D6C6A;
+      --text-tertiary: #9C9B99;
+      --green: #3D8A5A;
+      --green-light: #C8F0D8;
+      --green-dark: #4D9B6A;
+      --amber: #D4A64A;
+      --shadow-sm: 0 2px 8px #1A191808;
+      --shadow-md: 0 2px 12px #1A191808;
+      --shadow-btn: 0 4px 12px #3D8A5A44;
+      --radius-card: 16px;
+      --radius-input: 10px;
+      --radius-btn: 12px;
+      --radius-pill: 100px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ──────────────────────────────── */
+    header {
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-area { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .brand-name { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+    .brand-tagline { font-size: 13px; color: var(--text-tertiary); }
+
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .badge {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: var(--radius-pill);
+      font-size: 12px; font-weight: 600;
+    }
+    .badge-green { background: var(--green-light); color: var(--green); }
+    .badge-muted  { background: var(--surface-muted); color: var(--text-secondary); }
+    .badge-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: currentColor;
+    }
+    #health-badge .badge-dot { background: var(--green); }
+    #health-badge.offline { background: #FFECEC; color: #C0392B; }
+    #health-badge.offline .badge-dot { background: #C0392B; }
+
+    /* ── Body Layout ─────────────────────────── */
+    main {
+      flex: 1;
+      display: flex;
+      gap: 32px;
+      padding: 40px 48px;
+      align-items: flex-start;
+      max-width: 1280px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .left-col  { width: 520px; flex-shrink: 0; display: flex; flex-direction: column; gap: 24px; }
+    .right-col { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+    /* ── Cards ───────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-md);
+      padding: 24px;
+    }
+    .card-title { font-size: 18px; font-weight: 700; letter-spacing: -0.2px; margin-bottom: 6px; }
+    .card-sub   { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px; }
+
+    /* ── Dropzones ───────────────────────────── */
+    .dropzone {
+      width: 100%; height: 118px;
+      background: var(--surface-2);
+      border-radius: var(--radius-input);
+      border: 2px dashed var(--border-strong);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 6px;
+      cursor: pointer; transition: border-color .2s, background .2s;
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .dropzone:last-of-type { margin-bottom: 0; }
+    .dropzone.active-drop  { border-color: var(--green); background: var(--green-light); }
+    .dropzone.has-file     { border-style: solid; border-color: var(--green); }
+    .dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .dropzone-icon  { font-size: 28px; color: var(--text-tertiary); }
+    .dropzone.main-drop .dropzone-icon { color: var(--green); }
+    .dropzone-label { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+    .dropzone.main-drop .dropzone-label { color: var(--text-primary); }
+    .dropzone-sub   { font-size: 12px; color: var(--text-tertiary); }
+    .dropzone.has-file .dropzone-label { color: var(--green); }
+
+    /* ── Instructions ────────────────────────── */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .section-title  { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
+    textarea {
+      width: 100%; height: 120px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-input);
+      padding: 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px; color: var(--text-primary);
+      resize: vertical; outline: none;
+      transition: border-color .2s;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    textarea:focus { border-color: var(--green); }
+    textarea::placeholder { color: var(--text-tertiary); }
+
+    .options-row { display: flex; align-items: center; gap: 20px; }
+    .checkbox-item { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; color: var(--text-secondary); }
+    .checkbox-box {
+      width: 18px; height: 18px; border-radius: 4px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface-muted);
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s, border-color .2s;
+      flex-shrink: 0;
+    }
+    .checkbox-box.checked { background: var(--green); border-color: var(--green); }
+    .checkbox-box.checked::after { content: '✓'; font-size: 11px; color: #fff; font-weight: 700; }
+
+    /* ── Submit Button ───────────────────────── */
+    #submit-btn {
+      width: 100%; height: 52px;
+      background: var(--green);
+      color: #fff;
+      border: none; border-radius: var(--radius-btn);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px; font-weight: 700; letter-spacing: -0.2px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      box-shadow: var(--shadow-btn);
+      transition: opacity .2s, transform .1s;
+    }
+    #submit-btn:hover  { opacity: .92; }
+    #submit-btn:active { transform: scale(.98); }
+    #submit-btn:disabled { opacity: .55; cursor: not-allowed; }
+    #submit-btn .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Pipeline Card ───────────────────────── */
+    .pipeline-card {
+      background: var(--surface);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+    .pipeline-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; height: 52px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+    .pipeline-header-title { font-size: 15px; font-weight: 700; }
+
+    .step-row {
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 20px; height: 60px;
+      border-bottom: 1px solid var(--border);
+      transition: background .3s;
+    }
+    .step-row:last-child { border-bottom: none; }
+    .step-row.active   { background: #EEF8F3; }
+    .step-row.complete { background: var(--surface); }
+    .step-row.pending  { background: var(--surface); }
+
+    .step-icon {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      transition: background .3s;
+    }
+    .step-icon.active   { background: var(--green); color: #fff; }
+    .step-icon.complete { background: var(--green); color: #fff; }
+    .step-icon.pending  { background: var(--surface-muted); color: var(--text-tertiary); }
+
+    .step-text { flex: 1; }
+    .step-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .step-sub   { font-size: 12px; color: var(--text-tertiary); }
+    .step-row.pending .step-label { color: var(--text-secondary); }
+
+    .step-badge {
+      padding: 4px 10px; border-radius: var(--radius-pill);
+      font-size: 11px; font-weight: 600; flex-shrink: 0;
+    }
+    .step-badge.pending  { background: var(--surface-muted); color: var(--text-tertiary); }
+    .step-badge.active   { background: #FFF3CD; color: #856404; }
+    .step-badge.complete { background: var(--green-light); color: var(--green); }
+    .step-badge.error    { background: #FFECEC; color: #C0392B; }
+    .step-spinner {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    /* ── Result Card ─────────────────────────── */
+    .result-card { display: none; }
+    .result-card.visible { display: block; }
+    .result-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .result-title  { font-size: 15px; font-weight: 700; }
+
+    .stats-row { display: flex; gap: 12px; margin-bottom: 16px; }
+    .stat-box {
+      flex: 1; background: var(--bg); border-radius: 10px; padding: 14px;
+      text-align: center;
+    }
+    .stat-val   { font-size: 26px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+    .stat-label { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+    .stat-green  { color: var(--green); }
+    .stat-amber  { color: var(--amber); }
+
+    #download-btn {
+      width: 100%; height: 48px;
+      background: var(--text-primary);
+      color: #fff; border: none;
+      border-radius: var(--radius-input);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      text-decoration: none;
+      transition: opacity .2s;
+    }
+    #download-btn:hover { opacity: .85; }
+
+    /* ── Error Banner ────────────────────────── */
+    #error-banner {
+      display: none;
+      background: #FFECEC; color: #8B1A1A;
+      border: 1px solid #F5AAAA; border-radius: var(--radius-input);
+      padding: 12px 16px; font-size: 13px; line-height: 1.5;
+    }
+    #error-banner.visible { display: block; }
+
+    /* ── Log panel ───────────────────────────── */
+    #log-panel {
+      background: #1A1918; border-radius: 10px; padding: 16px;
+      font-family: monospace; font-size: 12px; color: #C8F0D8;
+      max-height: 160px; overflow-y: auto; display: none;
+      line-height: 1.7;
+    }
+    #log-panel.visible { display: block; }
+    #log-panel .log-line { display: block; }
+    #log-panel .log-ts   { color: #9C9B99; margin-right: 8px; }
+
+    /* ── Responsive ──────────────────────────── */
+    @media (max-width: 1024px) {
+      main { flex-direction: column; padding: 24px; }
+      .left-col { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
+<header>
+  <div class="logo-area">
+    <div class="logo-icon">⚗</div>
+    <span class="brand-name">SURF Extractor</span>
+    <span class="brand-tagline">Multi-Agent Chemical Reaction Extractor</span>
+  </div>
+  <div class="header-right">
+    <div id="health-badge" class="badge badge-green">
+      <span class="badge-dot"></span>
+      <span id="health-label">Checking…</span>
+    </div>
+    <a href="/docs" target="_blank" class="badge badge-muted">API Docs</a>
+  </div>
+</header>
+
+<!-- ═══════════════════════════ MAIN ════════════════════════════ -->
+<main>
+
+  <!-- ─── LEFT COLUMN ──────────────────────────────────────── -->
+  <div class="left-col">
+
+    <!-- Upload Publications Card -->
+    <div class="card">
+      <div class="card-title">Upload Publications</div>
+      <div class="card-sub">Upload the main paper and supplementary information PDFs to begin extraction.</div>
+
+      <!-- Main PDF Dropzone -->
+      <div class="dropzone main-drop" id="main-drop">
+        <input type="file" id="main-pdf-input" accept=".pdf" />
+        <span class="dropzone-icon">📄</span>
+        <span class="dropzone-label" id="main-pdf-label">Main Paper PDF</span>
+        <span class="dropzone-sub">Click to upload or drag &amp; drop</span>
+      </div>
+
+      <!-- SI PDF Dropzone -->
+      <div class="dropzone" id="si-drop">
+        <input type="file" id="si-pdf-input" accept=".pdf" />
+        <span class="dropzone-icon">📎</span>
+        <span class="dropzone-label" id="si-pdf-label">Supplementary Information PDF</span>
+        <span class="dropzone-sub">Optional – drag &amp; drop or click</span>
+      </div>
+    </div>
+
+    <!-- Instructions Card -->
+    <div class="card">
+      <div class="section-header">
+        <span class="section-title">Extraction Instructions</span>
+        <span class="badge badge-muted" style="font-size:11px; padding: 3px 10px;">Optional</span>
+      </div>
+      <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px; line-height:1.5;">
+        Add specific extraction rules, field overrides, or custom instructions for the AI agents.
+      </p>
+      <textarea id="instructions" placeholder="e.g. Focus on photocatalysis reactions only. Use 'isolated yield' as the default yield type. Extract the DOI from the header of page 1."></textarea>
+
+      <div class="options-row">
+        <label class="checkbox-item">
+          <div class="checkbox-box checked" id="visualheist-box"></div>
+          <input type="checkbox" id="use-visualheist" checked hidden />
+          Use VisualHeist (image extraction)
+        </label>
+        <label class="checkbox-item">
+          <div class="checkbox-box" id="large-model-box"></div>
+          <input type="checkbox" id="large-model" hidden />
+          Large model
+        </label>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button id="submit-btn" onclick="startExtraction()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Extract SURF Data
+    </button>
+
+  </div><!-- /left-col -->
+
+  <!-- ─── RIGHT COLUMN ─────────────────────────────────────── -->
+  <div class="right-col">
+
+    <!-- Pipeline Status -->
+    <div class="pipeline-card">
+      <div class="pipeline-header">
+        <span class="pipeline-header-title">Pipeline Status</span>
+        <div class="badge" id="pipeline-status-badge" style="background:var(--surface-muted); color:var(--text-secondary);">
+          <span class="badge-dot" style="background:var(--text-tertiary);"></span>
+          <span id="pipeline-status-label">Idle</span>
+        </div>
+      </div>
+
+      <div id="step-1" class="step-row pending">
+        <div class="step-icon pending">📄</div>
+        <div class="step-text">
+          <div class="step-label">PDF Parsing (MERMaid)</div>
+          <div class="step-sub">VisualHeist + text extraction</div>
+        </div>
+        <span class="step-badge pending">Pending</span>
+      </div>
+      <div id="step-2" class="step-row pending">
+        <div class="step-icon pending">🧠</div>
+        <div class="step-text">
+          <div class="step-label">Extraction Agent</div>
+          <div class="step-sub">Gemini 2.5 Pro via PortKey/Galileo</div>
+        </div>
+        <span class="step-badge pending">Pending</span>
+      </div>
+      <div id="step-3" class="step-row pending">
+        <div class="step-icon pending">🛡️</div>
+        <div class="step-text">
+          <div class="step-label">Reviewer / Critic Agent</div>
+          <div class="step-sub">Hallucination check &amp; validation</div>
+        </div>
+        <span class="step-badge pending">Pending</span>
+      </div>
+      <div id="step-4" class="step-row pending">
+        <div class="step-icon pending">⚗️</div>
+        <div class="step-text">
+          <div class="step-label">Chemical Resolution (ChemConverter)</div>
+          <div class="step-sub">CAS &amp; SMILES lookup via CASClient</div>
+        </div>
+        <span class="step-badge pending">Pending</span>
+      </div>
+      <div id="step-5" class="step-row pending">
+        <div class="step-icon pending">📊</div>
+        <div class="step-text">
+          <div class="step-label">SURF Formatter</div>
+          <div class="step-sub">Tab-separated CSV generation</div>
+        </div>
+        <span class="step-badge pending">Pending</span>
+      </div>
+    </div><!-- /pipeline-card -->
+
+    <!-- Error Banner -->
+    <div id="error-banner"></div>
+
+    <!-- Log Panel -->
+    <div id="log-panel"></div>
+
+    <!-- Result Card -->
+    <div class="card result-card" id="result-card">
+      <div class="result-header">
+        <span class="result-title">Extraction Result</span>
+        <div class="badge badge-green">
+          <span class="badge-dot"></span>
+          Complete
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-val stat-green" id="stat-reactions">—</div>
+          <div class="stat-label">Reactions</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="stat-resolved">—</div>
+          <div class="stat-label">Resolved</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val stat-amber" id="stat-pending">—</div>
+          <div class="stat-label">Pending CAS</div>
+        </div>
+      </div>
+      <a id="download-btn" href="#" download>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download SURF File (.tsv)
+      </a>
+    </div>
+
+  </div><!-- /right-col -->
+
+</main>
+
+<script>
+  // ─── Config ──────────────────────────────────────────────────────────────
+  const API_BASE = window.location.origin;
+  const POLL_INTERVAL_MS = 3000;
+
+  // ─── State ───────────────────────────────────────────────────────────────
+  let currentJobId = null;
+  let pollTimer    = null;
+
+  // ─── Status → step mapping ────────────────────────────────────────────────
+  const STATUS_STEP = {
+    pending:    0,
+    parsing:    1,
+    extracting: 2,
+    reviewing:  3,
+    resolving:  4,
+    formatting: 5,
+    done:       5,
+    failed:     -1,
+  };
+
+  // ─── Health check ─────────────────────────────────────────────────────────
+  async function checkHealth() {
+    try {
+      const res = await fetch(`${API_BASE}/health`);
+      const data = await res.json();
+      const badge = document.getElementById('health-badge');
+      const label = document.getElementById('health-label');
+      if (data.gateway?.reachable) {
+        badge.className = 'badge badge-green';
+        label.textContent = 'API Connected';
+      } else {
+        badge.className = 'badge';
+        badge.style.background = '#FFECEC';
+        badge.style.color = '#C0392B';
+        label.textContent = 'Gateway Offline';
+      }
+    } catch {
+      const label = document.getElementById('health-label');
+      label.textContent = 'API Offline';
+    }
+  }
+  checkHealth();
+
+  // ─── Checkbox toggle ──────────────────────────────────────────────────────
+  function toggleCheck(boxId, inputId) {
+    const box   = document.getElementById(boxId);
+    const input = document.getElementById(inputId);
+    input.checked = !input.checked;
+    box.classList.toggle('checked', input.checked);
+  }
+  document.getElementById('visualheist-box').onclick = () => toggleCheck('visualheist-box', 'use-visualheist');
+  document.getElementById('large-model-box').onclick = () => toggleCheck('large-model-box', 'large-model');
+
+  // ─── Dropzone feedback ────────────────────────────────────────────────────
+  function setupDropzone(dropId, inputId, labelId, name) {
+    const drop  = document.getElementById(dropId);
+    const input = document.getElementById(inputId);
+    const label = document.getElementById(labelId);
+
+    input.addEventListener('change', () => {
+      if (input.files.length) {
+        label.textContent = input.files[0].name;
+        drop.classList.add('has-file');
+      }
+    });
+
+    ['dragenter','dragover'].forEach(e => drop.addEventListener(e, ev => {
+      ev.preventDefault(); drop.classList.add('active-drop');
+    }));
+    ['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => {
+      ev.preventDefault(); drop.classList.remove('active-drop');
+      if (e === 'drop' && ev.dataTransfer.files.length) {
+        input.files = ev.dataTransfer.files;
+        label.textContent = ev.dataTransfer.files[0].name;
+        drop.classList.add('has-file');
+      }
+    }));
+  }
+
+  setupDropzone('main-drop', 'main-pdf-input', 'main-pdf-label', 'Main PDF');
+  setupDropzone('si-drop',   'si-pdf-input',   'si-pdf-label',   'SI PDF');
+
+  // ─── Step UI helpers ──────────────────────────────────────────────────────
+  function setStep(n, state, message) {
+    const row   = document.getElementById(`step-${n}`);
+    const icon  = row.querySelector('.step-icon');
+    const badge = row.querySelector('.step-badge');
+
+    row.className   = `step-row ${state}`;
+    icon.className  = `step-icon ${state}`;
+    badge.className = `step-badge ${state}`;
+
+    const LABELS = { pending:'Pending', active:'Running…', complete:'Done', error:'Failed' };
+    badge.textContent = message || LABELS[state] || state;
+
+    // Replace spinner or badge
+    let spinner = row.querySelector('.step-spinner');
+    if (state === 'active') {
+      if (!spinner) {
+        spinner = document.createElement('div');
+        spinner.className = 'step-spinner';
+        badge.replaceWith(spinner);
+      }
+    } else if (spinner) {
+      const newBadge = document.createElement('span');
+      newBadge.className = `step-badge ${state}`;
+      newBadge.textContent = LABELS[state] || state;
+      spinner.replaceWith(newBadge);
+    }
+  }
+
+  function resetSteps() {
+    for (let i = 1; i <= 5; i++) setStep(i, 'pending');
+  }
+
+  function setPipelineBadge(label, color, dotColor) {
+    const badge = document.getElementById('pipeline-status-badge');
+    const lbl   = document.getElementById('pipeline-status-label');
+    badge.style.background = color;
+    badge.querySelector('.badge-dot').style.background = dotColor;
+    lbl.textContent = label;
+  }
+
+  // ─── Log helper ───────────────────────────────────────────────────────────
+  function addLog(msg) {
+    const panel = document.getElementById('log-panel');
+    panel.classList.add('visible');
+    const line = document.createElement('span');
+    line.className = 'log-line';
+    const ts = new Date().toLocaleTimeString();
+    line.innerHTML = `<span class="log-ts">[${ts}]</span>${msg}`;
+    panel.appendChild(line);
+    panel.scrollTop = panel.scrollHeight;
+  }
+
+  function clearLog() {
+    const panel = document.getElementById('log-panel');
+    panel.innerHTML = '';
+    panel.classList.remove('visible');
+  }
+
+  // ─── Extraction ───────────────────────────────────────────────────────────
+  async function startExtraction() {
+    const mainFile = document.getElementById('main-pdf-input').files[0];
+    if (!mainFile) {
+      alert('Please upload the Main Paper PDF first.');
+      return;
+    }
+
+    // Reset UI
+    resetSteps();
+    clearLog();
+    document.getElementById('error-banner').classList.remove('visible');
+    document.getElementById('result-card').classList.remove('visible');
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').innerHTML = `<div class="spinner"></div> Submitting…`;
+    setPipelineBadge('Starting…', '#FFF3CD', '#856404');
+
+    const form = new FormData();
+    form.append('main_pdf', mainFile);
+    const siFile = document.getElementById('si-pdf-input').files[0];
+    if (siFile) form.append('si_pdf', siFile);
+    form.append('user_instructions', document.getElementById('instructions').value);
+    form.append('use_visualheist', document.getElementById('use-visualheist').checked);
+    form.append('large_model', document.getElementById('large-model').checked);
+
+    try {
+      const res  = await fetch(`${API_BASE}/extract`, { method: 'POST', body: form });
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`HTTP ${res.status}: ${err}`);
+      }
+      const job  = await res.json();
+      currentJobId = job.job_id;
+      addLog(`Job created: ${currentJobId}`);
+      document.getElementById('submit-btn').innerHTML = `<div class="spinner"></div> Extracting…`;
+      pollStatus();
+    } catch (err) {
+      showError(err.message);
+      resetSubmitBtn();
+    }
+  }
+
+  function pollStatus() {
+    if (pollTimer) clearTimeout(pollTimer);
+    pollTimer = setTimeout(async () => {
+      try {
+        const res  = await fetch(`${API_BASE}/status/${currentJobId}`);
+        const data = await res.json();
+        handleStatus(data);
+      } catch (err) {
+        addLog(`Poll error: ${err.message}`);
+        pollTimer = setTimeout(pollStatus, POLL_INTERVAL_MS);
+      }
+    }, POLL_INTERVAL_MS);
+  }
+
+  function handleStatus(data) {
+    const status  = data.status;
+    const message = data.message || '';
+    const stepIdx = STATUS_STEP[status] ?? 0;
+
+    addLog(`[${status}] ${message}`);
+
+    // Mark completed steps
+    for (let i = 1; i < stepIdx; i++) setStep(i, 'complete');
+    if (stepIdx > 0 && status !== 'done') setStep(stepIdx, 'active');
+
+    if (status === 'done') {
+      for (let i = 1; i <= 5; i++) setStep(i, 'complete');
+      setPipelineBadge('Complete', 'var(--green-light)', 'var(--green)');
+      showResult(data);
+      resetSubmitBtn();
+    } else if (status === 'failed') {
+      setPipelineBadge('Failed', '#FFECEC', '#C0392B');
+      if (stepIdx > 0) setStep(stepIdx, 'error');
+      showError(data.error || 'Extraction failed. See logs for details.');
+      resetSubmitBtn();
+    } else {
+      setPipelineBadge('Running', '#FFF3CD', '#856404');
+      pollStatus();
+    }
+  }
+
+  // ─── Result display ───────────────────────────────────────────────────────
+  function showResult(data) {
+    const card = document.getElementById('result-card');
+    card.classList.add('visible');
+
+    // Parse basic stats from TSV if needed (placeholder logic)
+    document.getElementById('stat-reactions').textContent = '—';
+    document.getElementById('stat-resolved').textContent  = '—';
+    document.getElementById('stat-pending').textContent   = '—';
+
+    const dlBtn = document.getElementById('download-btn');
+    dlBtn.href = `${API_BASE}/download/${currentJobId}`;
+    dlBtn.setAttribute('download', `surf_extraction_${currentJobId}.tsv`);
+
+    if (data.error) {
+      addLog(`Review notes: ${data.error}`);
+    }
+  }
+
+  // ─── Error display ────────────────────────────────────────────────────────
+  function showError(msg) {
+    const banner = document.getElementById('error-banner');
+    banner.textContent = `Error: ${msg}`;
+    banner.classList.add('visible');
+  }
+
+  function resetSubmitBtn() {
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = false;
+    btn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Extract SURF Data`;
+  }
+</script>
+</body>
+</html>

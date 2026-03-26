@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>Chem Converter</title>
+
+    <!-- Crucial on Posit Connect: keep everything relative to the app root -->
+    <base href="./">
+
+    <!-- Icons / Manifest -->
+    <link rel="icon" href="static/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="static/site.webmanifest" />
+
+    <!-- Styles (cache-busted) -->
+    <link rel="stylesheet" href="static/styles.css?v=20250908114" />
+  </head>
+  <body>
+    <main>
+      <div class="container">
+        <!-- Header -->
+        <div class="header">
+          <div class="logo" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <path stroke-width="1.8" d="M8 3h8M10 3v4l-5.5 9.5A3 3 0 0 0 7 20h10a3 3 0 0 0 2.5-3.5L14 7V3" />
+              <path stroke-width="1.8" d="M8 15h8" />
+            </svg>
+          </div>
+          <div class="title">Chem Converter</div>
+        </div>
+
+        <!-- Controls -->
+        <div class="card">
+          <div class="controls">
+            <div class="row" role="tablist" aria-label="Input type">
+              <div class="tabs" id="tabs">
+                <button class="tab active" data-tab="iupac" role="tab" aria-selected="true">IUPAC names</button>
+                <button class="tab" data-tab="smiles" role="tab" aria-selected="false">SMILES</button>
+                <button class="tab" data-tab="cas" role="tab" aria-selected="false">CAS Nº</button>
+              </div>
+
+              <label class="checkbox">
+                <input type="checkbox" id="fullToggle" />
+                <span>Full conversion (add InChI &amp; InChI Key)</span>
+              </label>
+
+              <label class="checkbox">
+                <input type="checkbox" id="wideToggle" />
+                <span>Wide mode</span>
+              </label>
+            </div>
+
+            <textarea id="inputArea" class="textarea" placeholder="Paste IUPAC names here, one per line…"></textarea>
+
+            <div class="row">
+              <button id="runBtn" class="btn">Convert</button>
+              <div class="stats" id="stats" aria-live="polite">Waiting…</div>
+            </div>
+
+            <div class="progress" aria-label="Progress bar">
+              <div id="progressBar"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Copy bar + Results -->
+        <div class="card">
+          <div class="copy-bar">
+            <div style="margin-bottom:8px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="copy-btn" data-col="name" title="Copy Name column">Copy Names</button>
+            <button class="copy-btn" data-col="smiles" title="Copy SMILES column">Copy SMILES</button>
+            <button class="copy-btn" data-col="cas" title="Copy CAS column">Copy CAS</button>
+            <button class="copy-btn" data-col="inchi" id="copyInchi" title="Copy InChI column" style="display:none">Copy InChI</button>
+            <button class="copy-btn" data-col="inchikey" id="copyInchikey" title="Copy InChI Key column" style="display:none">Copy InChI Key</button>
+          
+            <label style="display:inline-flex; align-items:center; gap:8px; font-size:0.9rem;"><input type="checkbox" id="missingAsNotFound" /><span>Copy missing as "<code>Not&nbsp;Found</code>"</span></label>
+          </div>
+          </div>
+          </div>
+
+          <div class="table-wrap">
+            <table id="resultsTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Input</th>
+                  <th>Name</th>
+                  <th class="col-smiles">SMILES</th>
+                  <th>CAS Nº</th>
+                  <th class="col-inchi" style="display:none">InChI</th>
+                  <th class="col-inchikey" style="display:none">InChI Key</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="resultsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer" style="text-align:center; padding:12px 0; color:#64748b;">
+        <small>&copy; Roche – Internal tool prototype. Developed by Oriol Villa. Updated 15/09/2025</small>
+      </footer>
+    </main>
+
+    <!-- App (cache-busted) -->
+    <script src="static/app.js?v=20250908114" defer></script>
+  </body>
+</html>
