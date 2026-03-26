@@ -50,7 +50,16 @@ class PortKeyClient:
         self.timeout = timeout
 
     def _get_portkey(self, base_url: str):
-        from portkey_ai import Portkey
+        try:
+            from portkey_ai import Portkey
+        except ImportError:
+            raise ImportError(
+                "portkey-ai package is not installed. Run: pip install portkey-ai"
+            )
+        if not self.api_key:
+            raise ValueError(
+                "PORTKEY_API_KEY is not set. Add it to your .env file."
+            )
         return Portkey(api_key=self.api_key, base_url=base_url, debug=False)
 
     def chat(
@@ -73,18 +82,28 @@ class PortKeyClient:
         if extra:
             kwargs.update(extra)
 
+        last_exc: Optional[Exception] = None
         for url_label, base_url in [("RCN", self.rcn_url), ("WAF", self.waf_url)]:
             try:
-                logger.debug("Calling %s endpoint: %s", url_label, base_url)
+                logger.info("Calling %s endpoint: %s (model=%s)", url_label, base_url, self.model)
                 portkey = self._get_portkey(base_url)
                 response = portkey.chat.completions.create(**kwargs)
                 content = response.choices[0].message.content
-                logger.debug("Response from %s (%d chars)", url_label, len(content))
+                logger.info("Response from %s (%d chars)", url_label, len(content))
                 return content
             except Exception as exc:
-                logger.warning("%s endpoint failed: %s – trying next…", url_label, exc)
+                logger.error(
+                    "%s endpoint failed [%s]: %s",
+                    url_label, type(exc).__name__, exc, exc_info=True,
+                )
+                last_exc = exc
 
-        raise RuntimeError("All PortKey endpoints failed. Check PORTKEY_API_KEY and network access.")
+        raise RuntimeError(
+            f"All PortKey endpoints failed. Last error: {last_exc!r}\n"
+            f"  API key set: {bool(self.api_key)}\n"
+            f"  RCN URL: {self.rcn_url}\n"
+            f"  WAF URL: {self.waf_url}"
+        ) from last_exc
 
 
 def build_image_message_content(text: str, images: list[dict]) -> list[dict]:
