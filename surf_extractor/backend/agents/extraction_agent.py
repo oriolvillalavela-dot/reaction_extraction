@@ -113,21 +113,22 @@ following the SURF format described in the system prompt.
         # Use vision if images are present (cap at 20 to stay within context limits)
         capped_images = images[:20]
 
-        # Gemini 2.5 Pro uses thinking tokens internally; use a large budget
-        # so thinking doesn't crowd out the actual JSON output.
+        # max_tokens=16384: gives Gemini 2.5 Pro enough room for output while
+        # staying within the Galileo gateway's server-side timeout.
+        # (65536 causes 504; 8192 truncates JSON mid-object)
         if capped_images:
             raw = self._chat_with_images(
                 system=EXTRACTION_SYSTEM_PROMPT,
                 text=user_message,
                 images=capped_images,
-                max_tokens=65536,
+                max_tokens=16384,
                 temperature=0.0,
             )
         else:
             raw = self._chat(
                 system=EXTRACTION_SYSTEM_PROMPT,
                 user=user_message,
-                max_tokens=65536,
+                max_tokens=16384,
                 temperature=0.0,
             )
 

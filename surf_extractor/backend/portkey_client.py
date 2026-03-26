@@ -101,11 +101,20 @@ class PortKeyClient:
                 logger.info("Response from %s (%d chars)", url_label, len(content))
                 return content
             except Exception as exc:
+                exc_type = type(exc).__name__
+                exc_str = str(exc)
                 logger.error(
                     "%s endpoint failed [%s]: %s",
-                    url_label, type(exc).__name__, exc, exc_info=True,
+                    url_label, exc_type, exc_str, exc_info=True,
                 )
                 last_exc = exc
+                # Only fall back to WAF on connection-level errors.
+                # 4xx (auth/access) and 5xx (gateway timeout) will repeat on WAF too.
+                is_connection_error = any(w in exc_type for w in ("Connect", "Timeout", "Network"))
+                is_server_error = "504" in exc_str or "503" in exc_str or "502" in exc_str
+                if not is_connection_error and not is_server_error:
+                    logger.info("Non-retryable error from %s – skipping WAF fallback.", url_label)
+                    break
 
         raise RuntimeError(
             f"All PortKey endpoints failed. Last error: {last_exc!r}\n"
