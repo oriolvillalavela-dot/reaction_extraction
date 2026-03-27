@@ -99,7 +99,57 @@ class SURFRow(BaseModel):
         extra = "allow"   # Allow dynamic additional compound columns
 
 
+# ---------------------------------------------------------------------------
+# Parser / Pipeline intermediate models
+# ---------------------------------------------------------------------------
+
+class TableRow(BaseModel):
+    """A single data row from a structurally-parsed reaction table."""
+    table_id: str                        # e.g. "T1", "T2"
+    entry_id: str                        # e.g. "E1", "E1a" — from the Entry column
+    row_index: int                       # 0-based position within the table
+    raw_cells: dict[str, str] = Field(default_factory=dict)  # header → cell value
+
+
+class ParsedTable(BaseModel):
+    """A reaction table extracted from the PDF by the Parser Agent."""
+    table_id: str
+    caption: str = ""
+    headers: list[str] = Field(default_factory=list)
+    rows: list[TableRow] = Field(default_factory=list)
+
+    @property
+    def expected_count(self) -> int:
+        return len(self.rows)
+
+
+class ParsedDocument(BaseModel):
+    """
+    Output of the Parser Agent.  Carries both the raw texts (for fallback) and
+    the structured table rows (for the paginated Scientist loop).
+    """
+    main_text: str = ""
+    si_text: str = ""
+    general_procedures: str = ""          # GP section extracted from SI
+    tables: list[ParsedTable] = Field(default_factory=list)
+    images: list[dict] = Field(default_factory=list)
+
+    @property
+    def total_expected_reactions(self) -> int:
+        return sum(t.expected_count for t in self.tables)
+
+
+class QAResult(BaseModel):
+    """Output of the QA Reviewer Agent."""
+    rows: list[dict] = Field(default_factory=list)
+    issues: list[str] = Field(default_factory=list)
+    missing_entry_ids: list[str] = Field(default_factory=list)  # ["T1_E3", "T2_E7"]
+    count_ok: bool = True
+
+
+# ---------------------------------------------------------------------------
 # SURF canonical column order
+# ---------------------------------------------------------------------------
 SURF_COLUMNS = [
     "rxn_id", "source_id", "source_type", "rxn_date", "rxn_type", "rxn_name",
     "rxn_tech", "temperature_deg_c", "time_h", "atmosphere", "stirring_shaking",
