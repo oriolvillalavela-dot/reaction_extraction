@@ -14,19 +14,22 @@ portkey-ai>=1.9.0
 pydantic>=2.7.0
 pydantic-settings>=2.3.0
 
-# ── PDF text extraction (used by MERMaid wrapper) ──────────────────────────────
+# ── PDF text extraction ────────────────────────────────────────────────────────
 pdfplumber>=0.11.0
-PyMuPDF>=1.24.0           # fallback PDF reader (package name: fitz)
+PyMuPDF>=1.24.0           # package name: fitz
 
-# ── Chemistry / ChemConverter dependencies ────────────────────────────────────
-rdkit>=2024.3.1            # or install via conda: conda install -c rdkit rdkit
-cirpy>=1.0.2               # CIRpy for IUPAC→SMILES via CAS Chemical ID Resolver
+# ── Chemistry (vendored ChemConverter) ────────────────────────────────────────
+# CASClient requires CAS_CLIENT_ID / CAS_CLIENT_SECRET / CAS_TOKEN_URL / CAS_SERVER
+# in your .env.  Without them CASClient is skipped and CIRpy is used as fallback.
+rdkit>=2024.3.1            # or: conda install -c rdkit rdkit
+cirpy>=1.0.2
 requests>=2.31.0
 
-# ── MERMaid / VisualHeist dependencies (optional; heavy ML stack) ─────────────
-# Uncomment if you want VisualHeist image extraction.
-# torch==2.3.0
-# torchvision==0.18.0
+# ── VisualHeist (vendored MERMaid) – heavy ML stack ───────────────────────────
+# Uncomment to enable image-based table extraction from PDFs.
+# On Windows also set POPPLER_PATH env var to your Poppler binary directory.
+# torch>=2.3.0
+# torchvision>=0.18.0
 # transformers>=4.41.0
 # safetensors>=0.4.3
 # huggingface_hub>=0.23.0
@@ -34,8 +37,6 @@ requests>=2.31.0
 # timm>=0.9.16
 # pdf2image>=1.17.0       # requires poppler-utils system package
 # Pillow>=10.3.0
-# opencv-python>=4.9.0
-# numpy>=1.26.0
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
 python-dotenv>=1.0.1

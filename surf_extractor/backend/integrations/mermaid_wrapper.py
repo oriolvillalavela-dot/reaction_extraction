@@ -1,11 +1,10 @@
 """
-Read-only wrapper for the MERMaid module (VisualHeist + text extraction).
-
-MERMaid directory is treated as an external black-box dependency.
-Do NOT modify any files inside /workspaces/workspaces/MERMaid/.
+MERMaid wrapper — text extraction (pdfplumber/PyMuPDF) + optional VisualHeist
+image extraction. VisualHeist is vendored in backend/vendor/visualheist and
+requires heavy ML dependencies (torch, transformers); install them via the
+VisualHeist section in requirements.txt. Falls back to text-only mode gracefully.
 """
 
-import sys
 import os
 import base64
 import logging
@@ -15,26 +14,15 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Inject MERMaid's src directory into sys.path so its packages resolve.
-# ---------------------------------------------------------------------------
-_MERMAID_ROOT = Path(__file__).resolve().parents[3] / "MERMaid"
-_MERMAID_SRC = _MERMAID_ROOT / "src"
-
-for _p in [str(_MERMAID_ROOT), str(_MERMAID_SRC)]:
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
-
 
 # ---------------------------------------------------------------------------
 # Lazy imports – VisualHeist pulls in heavy ML deps (transformers, torch).
-# We import lazily so the app can still start if the deps are missing and
-# gracefully falls back to text-only mode.
+# Falls back to text-only mode if deps are missing.
 # ---------------------------------------------------------------------------
 
 def _try_import_visualheist():
     try:
-        from visualheist.methods_visualheist import batch_pdf_to_figures_and_tables
+        from backend.vendor.visualheist.methods_visualheist import batch_pdf_to_figures_and_tables
         return batch_pdf_to_figures_and_tables
     except Exception as exc:
         logger.warning("VisualHeist not available: %s – falling back to text-only mode.", exc)

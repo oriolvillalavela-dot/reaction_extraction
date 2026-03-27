@@ -1,65 +1,65 @@
 """
-Read-only wrapper for the ChemConverter module.
+Chemical resolution wrapper — uses vendored ChemConverter code in backend/vendor/.
 
-ChemConverter directory is treated as an external black-box dependency.
-Do NOT modify any files inside /workspaces/workspaces/ChemConverter/.
+Resolution strategy per compound:
+  1. CASClient.lookup_by_name()  → CAS SciFinder (requires CAS_* env vars)
+  2. iupac_to_kekule_smiles()    → CIRpy + RDKit fallback
+  3. Both fail                   → leave as "PENDING_CONVERSION"
 """
 
-import sys
+from __future__ import annotations
 import logging
-from pathlib import Path
+import threading
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Inject ChemConverter directory into sys.path so its modules resolve.
-# ---------------------------------------------------------------------------
-_CHEMCONV_ROOT = Path(__file__).resolve().parents[3] / "ChemConverter"
-
-if str(_CHEMCONV_ROOT) not in sys.path:
-    sys.path.insert(0, str(_CHEMCONV_ROOT))
-
-
-# ---------------------------------------------------------------------------
-# Lazy-import helpers
+# Lazy-import helpers (thread-safe singleton for CASClient)
 # ---------------------------------------------------------------------------
 
 _cas_client_instance = None
 _cas_client_error: Optional[str] = None
+_cas_client_lock = threading.Lock()
 
 
 def _get_cas_client():
-    """Return a singleton CASClient, or None if unavailable."""
+    """Return a singleton CASClient, or None if unavailable (thread-safe)."""
     global _cas_client_instance, _cas_client_error
+    # Fast path — no lock once settled
     if _cas_client_instance is not None:
         return _cas_client_instance
     if _cas_client_error is not None:
         return None
-    try:
-        from cas_client import CASClient  # noqa: PLC0415
-        _cas_client_instance = CASClient()
-        logger.info("CASClient initialized successfully.")
-        return _cas_client_instance
-    except Exception as exc:
-        _cas_client_error = str(exc)
-        logger.warning("CASClient unavailable: %s", exc)
-        return None
+    with _cas_client_lock:
+        # Double-checked locking
+        if _cas_client_instance is not None:
+            return _cas_client_instance
+        if _cas_client_error is not None:
+            return None
+        try:
+            from backend.vendor.cas_client import CASClient
+            _cas_client_instance = CASClient()
+            logger.info("CASClient initialized successfully.")
+            return _cas_client_instance
+        except Exception as exc:
+            _cas_client_error = str(exc)
+            logger.warning("CASClient unavailable: %s", exc)
+            return None
 
 
 def _iupac_to_smiles(name: str) -> Optional[str]:
-    # Try ChemConverter's converter first (may not be available)
     try:
-        from converters import iupac_to_kekule_smiles  # noqa: PLC0415
+        from backend.vendor.converters import iupac_to_kekule_smiles
         result = iupac_to_kekule_smiles(name)
         if result:
             return result
     except Exception:
         pass
 
-    # Fallback: CIRpy directly (calls CAS Chemical Identifier Resolver web service)
+    # Direct CIRpy fallback (no RDKit required)
     try:
-        import cirpy  # noqa: PLC0415
+        import cirpy
         smiles = cirpy.resolve(name, "smiles")
         return smiles or None
     except Exception as exc:
@@ -73,21 +73,10 @@ def _iupac_to_smiles(name: str) -> Optional[str]:
 
 def resolve_compound(name: str) -> dict:
     """
-    Given a chemical compound name (as it appears in the text), attempt to
-    resolve CAS number and SMILES using ChemConverter tools.
-
-    Resolution strategy:
-      1. CASClient.lookup_by_name()  → gets CAS + SMILES from CAS SciFinder
-      2. iupac_to_kekule_smiles()    → fallback SMILES via CIRpy + RDKit
-      3. If both fail, return "PENDING_CONVERSION" placeholders.
+    Resolve a compound name to CAS number and SMILES.
 
     Returns:
-        {
-            "name": str,
-            "cas": str | None,
-            "smiles": str | None,
-            "resolved": bool
-        }
+        {"name": str, "cas": str | None, "smiles": str | None, "resolved": bool}
     """
     result = {"name": name, "cas": None, "smiles": None, "resolved": False}
 
@@ -116,7 +105,6 @@ def resolve_compound(name: str) -> dict:
         result["resolved"] = True
         logger.debug("Resolved '%s' via CIRpy: smiles=%s", name, smiles)
 
-        # Try to also get CAS from the resolved SMILES
         if client is not None:
             try:
                 info = client.lookup_by_smiles(smiles)
@@ -129,10 +117,7 @@ def resolve_compound(name: str) -> dict:
 
 
 def resolve_compounds_batch(names: list[str]) -> dict[str, dict]:
-    """
-    Resolve a list of compound names. Returns a dict keyed by name.
-    Skips empty / already-resolved entries.
-    """
+    """Resolve a list of compound names. Returns a dict keyed by name."""
     results = {}
     unique = list(dict.fromkeys(n for n in names if n and n != "PENDING_CONVERSION"))
     for name in unique:

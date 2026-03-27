@@ -6,31 +6,33 @@
   <title>SURF Extractor – Multi-Agent Chemical Reaction Extractor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@latest/font/lucide.min.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #F5F4F1;
-      --surface: #FFFFFF;
-      --surface-2: #FAFAF8;
-      --surface-muted: #EDECEA;
-      --border: #E5E4E1;
-      --border-strong: #D1D0CD;
-      --text-primary: #1A1918;
-      --text-secondary: #6D6C6A;
-      --text-tertiary: #9C9B99;
-      --green: #3D8A5A;
-      --green-light: #C8F0D8;
-      --green-dark: #4D9B6A;
-      --amber: #D4A64A;
-      --shadow-sm: 0 2px 8px #1A191808;
-      --shadow-md: 0 2px 12px #1A191808;
-      --shadow-btn: 0 4px 12px #3D8A5A44;
-      --radius-card: 16px;
-      --radius-input: 10px;
-      --radius-btn: 12px;
-      --radius-pill: 100px;
+      --bg:              #F5F4F1;
+      --surface:         #FFFFFF;
+      --surface-2:       #FAFAF8;
+      --surface-muted:   #EDECEA;
+      --border:          #E5E4E1;
+      --border-strong:   #D1D0CD;
+      --text-primary:    #1A1918;
+      --text-secondary:  #6B6963;
+      --text-tertiary:   #9C9B99;
+      --green:           #3D8A5A;
+      --green-dark:      #2A5C3F;
+      --green-bg:        #EEF8F3;
+      --green-light:     #C8F0D8;
+      --amber:           #B87333;
+      --red-bg:          #FFECEC;
+      --red:             #C0392B;
+      --shadow-sm:       0 1px 4px rgba(26,25,24,.06);
+      --shadow-md:       0 2px 12px rgba(26,25,24,.06);
+      --shadow-btn:      0 4px 14px rgba(61,138,90,.35);
+      --radius-card:     16px;
+      --radius-input:    10px;
+      --radius-btn:      12px;
+      --radius-pill:     100px;
     }
 
     body {
@@ -42,10 +44,10 @@
       flex-direction: column;
     }
 
-    /* ── Header ──────────────────────────────── */
+    /* ── Header ──────────────────────────────────────────────────────── */
     header {
       background: var(--surface);
-      box-shadow: var(--shadow-sm);
+      border-bottom: 1px solid var(--border);
       height: 68px;
       display: flex;
       align-items: center;
@@ -61,84 +63,87 @@
       width: 36px; height: 36px; border-radius: 10px;
       background: var(--green);
       display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
+      font-size: 18px;
     }
-    .brand-name { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
-    .brand-tagline { font-size: 13px; color: var(--text-tertiary); }
+    .brand-name    { font-size: 18px; font-weight: 700; letter-spacing: -.4px; }
+    .brand-tagline { font-size: 12px; color: var(--text-tertiary); }
 
     .header-right { display: flex; align-items: center; gap: 8px; }
+
     .badge {
-      display: flex; align-items: center; gap: 6px;
+      display: inline-flex; align-items: center; gap: 6px;
       padding: 5px 12px; border-radius: var(--radius-pill);
       font-size: 12px; font-weight: 600;
+      text-decoration: none;
     }
-    .badge-green { background: var(--green-light); color: var(--green); }
+    .badge-green  { background: var(--green-light); color: var(--green); }
     .badge-muted  { background: var(--surface-muted); color: var(--text-secondary); }
-    .badge-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: currentColor;
-    }
-    #health-badge .badge-dot { background: var(--green); }
-    #health-badge.offline { background: #FFECEC; color: #C0392B; }
-    #health-badge.offline .badge-dot { background: #C0392B; }
+    .badge-dot    { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    #health-badge.offline { background: var(--red-bg); color: var(--red); }
 
-    /* ── Body Layout ─────────────────────────── */
+    /* ── Body layout ─────────────────────────────────────────────────── */
     main {
       flex: 1;
       display: flex;
       gap: 32px;
       padding: 40px 48px;
       align-items: flex-start;
-      max-width: 1280px;
+      max-width: 1400px;
       margin: 0 auto;
       width: 100%;
     }
 
-    .left-col  { width: 520px; flex-shrink: 0; display: flex; flex-direction: column; gap: 24px; }
+    .left-col  { width: 500px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px; }
     .right-col { flex: 1; display: flex; flex-direction: column; gap: 20px; }
 
-    /* ── Cards ───────────────────────────────── */
+    /* ── Cards ───────────────────────────────────────────────────────── */
     .card {
       background: var(--surface);
       border-radius: var(--radius-card);
+      border: 1px solid var(--border);
       box-shadow: var(--shadow-md);
-      padding: 24px;
+      overflow: hidden;
     }
-    .card-title { font-size: 18px; font-weight: 700; letter-spacing: -0.2px; margin-bottom: 6px; }
+    .card-body { padding: 20px; }
+    .card-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
     .card-sub   { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px; }
 
-    /* ── Dropzones ───────────────────────────── */
+    /* ── Dropzones ───────────────────────────────────────────────────── */
     .dropzone {
-      width: 100%; height: 118px;
+      width: 100%; height: 112px;
       background: var(--surface-2);
       border-radius: var(--radius-input);
-      border: 2px dashed var(--border-strong);
+      border: 1.5px dashed var(--border-strong);
       display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 6px;
+      align-items: center; justify-content: center; gap: 5px;
       cursor: pointer; transition: border-color .2s, background .2s;
       position: relative;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .dropzone:last-of-type { margin-bottom: 0; }
-    .dropzone.active-drop  { border-color: var(--green); background: var(--green-light); }
+    .dropzone.active-drop  { border-color: var(--green); background: var(--green-bg); }
     .dropzone.has-file     { border-style: solid; border-color: var(--green); }
     .dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-    .dropzone-icon  { font-size: 28px; color: var(--text-tertiary); }
+    .dropzone-icon  { font-size: 24px; color: var(--text-tertiary); }
     .dropzone.main-drop .dropzone-icon { color: var(--green); }
-    .dropzone-label { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+    .dropzone-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
     .dropzone.main-drop .dropzone-label { color: var(--text-primary); }
-    .dropzone-sub   { font-size: 12px; color: var(--text-tertiary); }
+    .dropzone-sub   { font-size: 11px; color: var(--text-tertiary); }
     .dropzone.has-file .dropzone-label { color: var(--green); }
 
-    /* ── Instructions ────────────────────────── */
-    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .section-title  { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
+    /* ── Instructions card ───────────────────────────────────────────── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .section-title { font-size: 15px; font-weight: 700; }
+
     textarea {
-      width: 100%; height: 120px;
+      width: 100%; height: 100px;
       background: var(--surface-2);
       border: 1px solid var(--border);
       border-radius: var(--radius-input);
-      padding: 14px;
+      padding: 12px 14px;
       font-family: 'Inter', sans-serif;
       font-size: 13px; color: var(--text-primary);
       resize: vertical; outline: none;
@@ -150,7 +155,10 @@
     textarea::placeholder { color: var(--text-tertiary); }
 
     .options-row { display: flex; align-items: center; gap: 20px; }
-    .checkbox-item { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; color: var(--text-secondary); }
+    .checkbox-item {
+      display: flex; align-items: center; gap: 8px;
+      cursor: pointer; font-size: 12px; color: var(--text-secondary);
+    }
     .checkbox-box {
       width: 18px; height: 18px; border-radius: 4px;
       border: 1px solid var(--border-strong);
@@ -162,14 +170,13 @@
     .checkbox-box.checked { background: var(--green); border-color: var(--green); }
     .checkbox-box.checked::after { content: '✓'; font-size: 11px; color: #fff; font-weight: 700; }
 
-    /* ── Submit Button ───────────────────────── */
+    /* ── Submit button ───────────────────────────────────────────────── */
     #submit-btn {
       width: 100%; height: 52px;
       background: var(--green);
-      color: #fff;
-      border: none; border-radius: var(--radius-btn);
+      color: #fff; border: none; border-radius: var(--radius-btn);
       font-family: 'Inter', sans-serif;
-      font-size: 15px; font-weight: 700; letter-spacing: -0.2px;
+      font-size: 15px; font-weight: 700; letter-spacing: -.2px;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 10px;
       box-shadow: var(--shadow-btn);
@@ -177,7 +184,7 @@
     }
     #submit-btn:hover  { opacity: .92; }
     #submit-btn:active { transform: scale(.98); }
-    #submit-btn:disabled { opacity: .55; cursor: not-allowed; }
+    #submit-btn:disabled { opacity: .5; cursor: not-allowed; }
     #submit-btn .spinner {
       width: 18px; height: 18px;
       border: 2px solid rgba(255,255,255,.4);
@@ -187,13 +194,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Pipeline Card ───────────────────────── */
-    .pipeline-card {
-      background: var(--surface);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-md);
-      overflow: hidden;
-    }
+    /* ── Pipeline card ───────────────────────────────────────────────── */
     .pipeline-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 20px; height: 52px;
@@ -204,26 +205,25 @@
 
     .step-row {
       display: flex; align-items: center; gap: 16px;
-      padding: 0 20px; height: 60px;
+      padding: 0 20px; height: 64px;
       border-bottom: 1px solid var(--border);
       transition: background .3s;
     }
     .step-row:last-child { border-bottom: none; }
-    .step-row.active   { background: #EEF8F3; }
-    .step-row.complete { background: var(--surface); }
+    .step-row.active   { background: var(--green-bg); }
+    .step-row.complete,
     .step-row.pending  { background: var(--surface); }
 
     .step-icon {
       width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 15px;
-      transition: background .3s;
+      font-size: 14px; transition: background .3s;
     }
-    .step-icon.active   { background: var(--green); color: #fff; }
+    .step-icon.active,
     .step-icon.complete { background: var(--green); color: #fff; }
     .step-icon.pending  { background: var(--surface-muted); color: var(--text-tertiary); }
 
-    .step-text { flex: 1; }
+    .step-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
     .step-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
     .step-sub   { font-size: 12px; color: var(--text-tertiary); }
     .step-row.pending .step-label { color: var(--text-secondary); }
@@ -235,7 +235,8 @@
     .step-badge.pending  { background: var(--surface-muted); color: var(--text-tertiary); }
     .step-badge.active   { background: #FFF3CD; color: #856404; }
     .step-badge.complete { background: var(--green-light); color: var(--green); }
-    .step-badge.error    { background: #FFECEC; color: #C0392B; }
+    .step-badge.error    { background: var(--red-bg); color: var(--red); }
+
     .step-spinner {
       width: 20px; height: 20px;
       border: 2px solid var(--border);
@@ -245,57 +246,80 @@
       flex-shrink: 0;
     }
 
-    /* ── Result Card ─────────────────────────── */
-    .result-card { display: none; }
-    .result-card.visible { display: block; }
-    .result-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-    .result-title  { font-size: 15px; font-weight: 700; }
+    /* ── Result card ─────────────────────────────────────────────────── */
+    #result-card { display: none; }
+    #result-card.visible { display: block; }
 
-    .stats-row { display: flex; gap: 12px; margin-bottom: 16px; }
-    .stat-box {
-      flex: 1; background: var(--bg); border-radius: 10px; padding: 14px;
-      text-align: center;
+    .result-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; height: 52px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
     }
-    .stat-val   { font-size: 26px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
-    .stat-label { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
-    .stat-green  { color: var(--green); }
-    .stat-amber  { color: var(--amber); }
+    .result-header-title { font-size: 15px; font-weight: 700; }
+
+    .stats-row {
+      display: flex; align-items: stretch;
+      border-bottom: 1px solid var(--border);
+    }
+    .stat-col {
+      flex: 1; text-align: center;
+      padding: 20px 0;
+      border-right: 1px solid var(--border);
+    }
+    .stat-col:last-child { border-right: none; }
+    .stat-val   { font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+    .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+    .stat-green { color: var(--green); }
+    .stat-amber { color: var(--amber); }
+
+    .result-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; gap: 12px;
+    }
+    .qa-note {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .qa-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-secondary); }
+    .qa-dot.ok { background: var(--green); }
 
     #download-btn {
-      width: 100%; height: 48px;
-      background: var(--text-primary);
+      height: 40px; padding: 0 20px;
+      background: var(--green-dark);
       color: #fff; border: none;
-      border-radius: var(--radius-input);
+      border-radius: 8px;
       font-family: 'Inter', sans-serif;
       font-size: 14px; font-weight: 600;
       cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
+      display: flex; align-items: center; gap: 8px;
       text-decoration: none;
+      flex-shrink: 0;
       transition: opacity .2s;
     }
-    #download-btn:hover { opacity: .85; }
+    #download-btn:hover { opacity: .88; }
 
-    /* ── Error Banner ────────────────────────── */
+    /* ── Error banner ─────────────────────────────────────────────────── */
     #error-banner {
       display: none;
-      background: #FFECEC; color: #8B1A1A;
+      background: var(--red-bg); color: #8B1A1A;
       border: 1px solid #F5AAAA; border-radius: var(--radius-input);
       padding: 12px 16px; font-size: 13px; line-height: 1.5;
     }
     #error-banner.visible { display: block; }
 
-    /* ── Log panel ───────────────────────────── */
+    /* ── Log panel ───────────────────────────────────────────────────── */
     #log-panel {
       background: #1A1918; border-radius: 10px; padding: 16px;
-      font-family: monospace; font-size: 12px; color: #C8F0D8;
-      max-height: 160px; overflow-y: auto; display: none;
+      font-family: monospace; font-size: 12px; color: var(--green-light);
+      max-height: 150px; overflow-y: auto; display: none;
       line-height: 1.7;
     }
     #log-panel.visible { display: block; }
     #log-panel .log-line { display: block; }
-    #log-panel .log-ts   { color: #9C9B99; margin-right: 8px; }
+    #log-panel .log-ts   { color: var(--text-tertiary); margin-right: 8px; }
 
-    /* ── Responsive ──────────────────────────── */
+    /* ── Responsive ──────────────────────────────────────────────────── */
     @media (max-width: 1024px) {
       main { flex-direction: column; padding: 24px; }
       .left-col { width: 100%; }
@@ -304,12 +328,14 @@
 </head>
 <body>
 
-<!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
+<!-- ═══════════════════════════ HEADER ════════════════════════════ -->
 <header>
   <div class="logo-area">
     <div class="logo-icon">⚗</div>
-    <span class="brand-name">SURF Extractor</span>
-    <span class="brand-tagline">Multi-Agent Chemical Reaction Extractor</span>
+    <div>
+      <div class="brand-name">SURF Extractor</div>
+      <div class="brand-tagline">Multi-Agent Chemical Reaction Extractor</div>
+    </div>
   </div>
   <div class="header-right">
     <div id="health-badge" class="badge badge-green">
@@ -320,121 +346,131 @@
   </div>
 </header>
 
-<!-- ═══════════════════════════ MAIN ════════════════════════════ -->
+<!-- ═══════════════════════════ MAIN ═════════════════════════════ -->
 <main>
 
-  <!-- ─── LEFT COLUMN ──────────────────────────────────────── -->
+  <!-- ─── LEFT COLUMN ─────────────────────────────────────────── -->
   <div class="left-col">
 
-    <!-- Upload Publications Card -->
+    <!-- Upload Publications -->
     <div class="card">
-      <div class="card-title">Upload Publications</div>
-      <div class="card-sub">Upload the main paper and supplementary information PDFs to begin extraction.</div>
+      <div class="card-body">
+        <div class="card-title">Upload Publications</div>
+        <div class="card-sub">Upload the main paper and supplementary information PDFs to begin extraction.</div>
 
-      <!-- Main PDF Dropzone -->
-      <div class="dropzone main-drop" id="main-drop">
-        <input type="file" id="main-pdf-input" accept=".pdf" />
-        <span class="dropzone-icon">📄</span>
-        <span class="dropzone-label" id="main-pdf-label">Main Paper PDF</span>
-        <span class="dropzone-sub">Click to upload or drag &amp; drop</span>
-      </div>
+        <div class="dropzone main-drop" id="main-drop">
+          <input type="file" id="main-pdf-input" accept=".pdf" />
+          <span class="dropzone-icon">📄</span>
+          <span class="dropzone-label" id="main-pdf-label">Main Paper PDF</span>
+          <span class="dropzone-sub">Click to upload or drag &amp; drop</span>
+        </div>
 
-      <!-- SI PDF Dropzone -->
-      <div class="dropzone" id="si-drop">
-        <input type="file" id="si-pdf-input" accept=".pdf" />
-        <span class="dropzone-icon">📎</span>
-        <span class="dropzone-label" id="si-pdf-label">Supplementary Information PDF</span>
-        <span class="dropzone-sub">Optional – drag &amp; drop or click</span>
+        <div class="dropzone" id="si-drop">
+          <input type="file" id="si-pdf-input" accept=".pdf" />
+          <span class="dropzone-icon">📎</span>
+          <span class="dropzone-label" id="si-pdf-label">Supplementary Information PDF</span>
+          <span class="dropzone-sub">Optional – drag &amp; drop or click</span>
+        </div>
       </div>
     </div>
 
-    <!-- Instructions Card -->
+    <!-- Extraction Instructions -->
     <div class="card">
-      <div class="section-header">
-        <span class="section-title">Extraction Instructions</span>
-        <span class="badge badge-muted" style="font-size:11px; padding: 3px 10px;">Optional</span>
-      </div>
-      <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px; line-height:1.5;">
-        Add specific extraction rules, field overrides, or custom instructions for the AI agents.
-      </p>
-      <textarea id="instructions" placeholder="e.g. Focus on photocatalysis reactions only. Use 'isolated yield' as the default yield type. Extract the DOI from the header of page 1."></textarea>
+      <div class="card-body">
+        <div class="section-header">
+          <span class="section-title">Extraction Instructions</span>
+          <span class="badge badge-muted" style="font-size:11px; padding:3px 10px;">Optional</span>
+        </div>
+        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px; line-height:1.5;">
+          Add specific extraction rules, field overrides, or custom instructions for the AI agents.
+        </p>
+        <textarea id="instructions" placeholder="e.g. Focus on photocatalysis reactions only. Use 'isolated yield' as the default yield type."></textarea>
 
-      <div class="options-row">
-        <label class="checkbox-item">
-          <div class="checkbox-box checked" id="visualheist-box"></div>
-          <input type="checkbox" id="use-visualheist" checked hidden />
-          Use VisualHeist (image extraction)
-        </label>
-        <label class="checkbox-item">
-          <div class="checkbox-box" id="large-model-box"></div>
-          <input type="checkbox" id="large-model" hidden />
-          Large model
-        </label>
+        <div class="options-row">
+          <label class="checkbox-item">
+            <div class="checkbox-box checked" id="visualheist-box"></div>
+            <input type="checkbox" id="use-visualheist" checked hidden />
+            Use VisualHeist (image extraction)
+          </label>
+          <label class="checkbox-item">
+            <div class="checkbox-box" id="large-model-box"></div>
+            <input type="checkbox" id="large-model" hidden />
+            Large model
+          </label>
+        </div>
       </div>
     </div>
 
-    <!-- Submit Button -->
+    <!-- Submit -->
     <button id="submit-btn" onclick="startExtraction()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
       Extract SURF Data
     </button>
 
   </div><!-- /left-col -->
 
-  <!-- ─── RIGHT COLUMN ─────────────────────────────────────── -->
+  <!-- ─── RIGHT COLUMN ────────────────────────────────────────── -->
   <div class="right-col">
 
     <!-- Pipeline Status -->
-    <div class="pipeline-card">
+    <div class="card">
       <div class="pipeline-header">
         <span class="pipeline-header-title">Pipeline Status</span>
-        <div class="badge" id="pipeline-status-badge" style="background:var(--surface-muted); color:var(--text-secondary);">
-          <span class="badge-dot" style="background:var(--text-tertiary);"></span>
+        <div class="badge badge-muted" id="pipeline-status-badge">
+          <span class="badge-dot" id="pipeline-badge-dot"></span>
           <span id="pipeline-status-label">Idle</span>
         </div>
       </div>
 
       <div id="step-1" class="step-row pending">
-        <div class="step-icon pending">📄</div>
+        <div class="step-icon pending">📋</div>
         <div class="step-text">
-          <div class="step-label">PDF Parsing (MERMaid)</div>
-          <div class="step-sub">VisualHeist + text extraction</div>
+          <div class="step-label">PDF Parsing &amp; Table Detection</div>
+          <div class="step-sub">MERMaid + Parser Agent · row counting</div>
         </div>
         <span class="step-badge pending">Pending</span>
       </div>
+
       <div id="step-2" class="step-row pending">
-        <div class="step-icon pending">🧠</div>
+        <div class="step-icon pending">🔬</div>
         <div class="step-text">
-          <div class="step-label">Extraction Agent</div>
-          <div class="step-sub">Gemini 2.5 Pro via PortKey/Galileo</div>
+          <div class="step-label">Scientist Agent</div>
+          <div class="step-sub">Baseline from GP + structured row extraction</div>
         </div>
         <span class="step-badge pending">Pending</span>
       </div>
+
       <div id="step-3" class="step-row pending">
-        <div class="step-icon pending">🛡️</div>
+        <div class="step-icon pending">🔍</div>
         <div class="step-text">
-          <div class="step-label">Reviewer / Critic Agent</div>
-          <div class="step-sub">Hallucination check &amp; validation</div>
+          <div class="step-label">QA Reviewer &amp; Re-extraction</div>
+          <div class="step-sub">Count reconciliation · re-extraction of missing entries</div>
         </div>
         <span class="step-badge pending">Pending</span>
       </div>
+
       <div id="step-4" class="step-row pending">
         <div class="step-icon pending">⚗️</div>
         <div class="step-text">
-          <div class="step-label">Chemical Resolution (ChemConverter)</div>
-          <div class="step-sub">CAS &amp; SMILES lookup via CASClient</div>
+          <div class="step-label">Chemical Resolution</div>
+          <div class="step-sub">CAS &amp; SMILES lookup via ChemConverter · CIRpy fallback</div>
         </div>
         <span class="step-badge pending">Pending</span>
       </div>
+
       <div id="step-5" class="step-row pending">
         <div class="step-icon pending">📊</div>
         <div class="step-text">
           <div class="step-label">SURF Formatter</div>
-          <div class="step-sub">Tab-separated CSV generation</div>
+          <div class="step-sub">Tab-separated CSV · 58 canonical SURF columns</div>
         </div>
         <span class="step-badge pending">Pending</span>
       </div>
-    </div><!-- /pipeline-card -->
+    </div><!-- /pipeline card -->
 
     <!-- Error Banner -->
     <div id="error-banner"></div>
@@ -443,48 +479,62 @@
     <div id="log-panel"></div>
 
     <!-- Result Card -->
-    <div class="card result-card" id="result-card">
+    <div class="card" id="result-card">
       <div class="result-header">
-        <span class="result-title">Extraction Result</span>
+        <span class="result-header-title">Extraction Results</span>
         <div class="badge badge-green">
           <span class="badge-dot"></span>
-          Complete
+          Ready
         </div>
       </div>
+
       <div class="stats-row">
-        <div class="stat-box">
+        <div class="stat-col">
           <div class="stat-val stat-green" id="stat-reactions">—</div>
           <div class="stat-label">Reactions</div>
         </div>
-        <div class="stat-box">
+        <div class="stat-col">
           <div class="stat-val" id="stat-resolved">—</div>
           <div class="stat-label">Resolved</div>
         </div>
-        <div class="stat-box">
+        <div class="stat-col">
           <div class="stat-val stat-amber" id="stat-pending">—</div>
           <div class="stat-label">Pending CAS</div>
         </div>
       </div>
-      <a id="download-btn" href="#" download>
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download SURF File (.tsv)
-      </a>
-    </div>
+
+      <div class="result-footer">
+        <div class="qa-note">
+          <div class="qa-dot" id="qa-dot"></div>
+          <span id="qa-note-text">QA passed · 0 issues</span>
+        </div>
+        <a id="download-btn" href="#" download>
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download SURF File
+        </a>
+      </div>
+    </div><!-- /result card -->
 
   </div><!-- /right-col -->
 
 </main>
 
 <script>
-  // ─── Config ──────────────────────────────────────────────────────────────
-  const API_BASE = window.location.origin;
+  // ── Config ──────────────────────────────────────────────────────────────────
+  const API_BASE         = window.location.origin;
   const POLL_INTERVAL_MS = 3000;
 
-  // ─── State ───────────────────────────────────────────────────────────────
+  // ── State ───────────────────────────────────────────────────────────────────
   let currentJobId = null;
   let pollTimer    = null;
 
-  // ─── Status → step mapping ────────────────────────────────────────────────
+  // ── Status → step mapping ───────────────────────────────────────────────────
   const STATUS_STEP = {
     pending:    0,
     parsing:    1,
@@ -496,10 +546,10 @@
     failed:     -1,
   };
 
-  // ─── Health check ─────────────────────────────────────────────────────────
+  // ── Health check ────────────────────────────────────────────────────────────
   async function checkHealth() {
     try {
-      const res = await fetch(`${API_BASE}/health`);
+      const res  = await fetch(`${API_BASE}/health`);
       const data = await res.json();
       const badge = document.getElementById('health-badge');
       const label = document.getElementById('health-label');
@@ -508,18 +558,16 @@
         label.textContent = 'API Connected';
       } else {
         badge.className = 'badge';
-        badge.style.background = '#FFECEC';
-        badge.style.color = '#C0392B';
+        badge.style.cssText = 'background:var(--red-bg);color:var(--red)';
         label.textContent = 'Gateway Offline';
       }
     } catch {
-      const label = document.getElementById('health-label');
-      label.textContent = 'API Offline';
+      document.getElementById('health-label').textContent = 'API Offline';
     }
   }
   checkHealth();
 
-  // ─── Checkbox toggle ──────────────────────────────────────────────────────
+  // ── Checkbox toggle ─────────────────────────────────────────────────────────
   function toggleCheck(boxId, inputId) {
     const box   = document.getElementById(boxId);
     const input = document.getElementById(inputId);
@@ -529,8 +577,8 @@
   document.getElementById('visualheist-box').onclick = () => toggleCheck('visualheist-box', 'use-visualheist');
   document.getElementById('large-model-box').onclick = () => toggleCheck('large-model-box', 'large-model');
 
-  // ─── Dropzone feedback ────────────────────────────────────────────────────
-  function setupDropzone(dropId, inputId, labelId, name) {
+  // ── Dropzone feedback ───────────────────────────────────────────────────────
+  function setupDropzone(dropId, inputId, labelId) {
     const drop  = document.getElementById(dropId);
     const input = document.getElementById(inputId);
     const label = document.getElementById(labelId);
@@ -541,7 +589,6 @@
         drop.classList.add('has-file');
       }
     });
-
     ['dragenter','dragover'].forEach(e => drop.addEventListener(e, ev => {
       ev.preventDefault(); drop.classList.add('active-drop');
     }));
@@ -554,26 +601,23 @@
       }
     }));
   }
+  setupDropzone('main-drop', 'main-pdf-input', 'main-pdf-label');
+  setupDropzone('si-drop',   'si-pdf-input',   'si-pdf-label');
 
-  setupDropzone('main-drop', 'main-pdf-input', 'main-pdf-label', 'Main PDF');
-  setupDropzone('si-drop',   'si-pdf-input',   'si-pdf-label',   'SI PDF');
-
-  // ─── Step UI helpers ──────────────────────────────────────────────────────
-  function setStep(n, state, message) {
+  // ── Step UI helpers ─────────────────────────────────────────────────────────
+  function setStep(n, state) {
     const row = document.getElementById(`step-${n}`);
     if (!row) return;
     const icon    = row.querySelector('.step-icon');
-    let   badge   = row.querySelector('.step-badge');
-    let   spinner = row.querySelector('.step-spinner');
+    const badge   = row.querySelector('.step-badge');
+    const spinner = row.querySelector('.step-spinner');
 
     row.className = `step-row ${state}`;
     if (icon) icon.className = `step-icon ${state}`;
 
     const LABELS = { pending:'Pending', active:'Running…', complete:'Done', error:'Failed' };
-    const labelText = message || LABELS[state] || state;
 
     if (state === 'active') {
-      // Replace badge with spinner (only once)
       if (!spinner) {
         const s = document.createElement('div');
         s.className = 'step-spinner';
@@ -581,20 +625,12 @@
         else row.appendChild(s);
       }
     } else {
-      // Replace spinner with badge, or update existing badge
-      if (spinner) {
+      const el = spinner || badge;
+      if (el) {
         const b = document.createElement('span');
         b.className = `step-badge ${state}`;
-        b.textContent = labelText;
-        spinner.replaceWith(b);
-      } else if (badge) {
-        badge.className = `step-badge ${state}`;
-        badge.textContent = labelText;
-      } else {
-        const b = document.createElement('span');
-        b.className = `step-badge ${state}`;
-        b.textContent = labelText;
-        row.appendChild(b);
+        b.textContent = LABELS[state] || state;
+        el.replaceWith(b);
       }
     }
   }
@@ -603,15 +639,14 @@
     for (let i = 1; i <= 5; i++) setStep(i, 'pending');
   }
 
-  function setPipelineBadge(label, color, dotColor) {
+  function setPipelineBadge(label, cls) {
     const badge = document.getElementById('pipeline-status-badge');
     const lbl   = document.getElementById('pipeline-status-label');
-    badge.style.background = color;
-    badge.querySelector('.badge-dot').style.background = dotColor;
+    badge.className = `badge ${cls}`;
     lbl.textContent = label;
   }
 
-  // ─── Log helper ───────────────────────────────────────────────────────────
+  // ── Log helper ──────────────────────────────────────────────────────────────
   function addLog(msg) {
     const panel = document.getElementById('log-panel');
     panel.classList.add('visible');
@@ -622,29 +657,24 @@
     panel.appendChild(line);
     panel.scrollTop = panel.scrollHeight;
   }
-
   function clearLog() {
     const panel = document.getElementById('log-panel');
     panel.innerHTML = '';
     panel.classList.remove('visible');
   }
 
-  // ─── Extraction ───────────────────────────────────────────────────────────
+  // ── Extraction ──────────────────────────────────────────────────────────────
   async function startExtraction() {
     const mainFile = document.getElementById('main-pdf-input').files[0];
-    if (!mainFile) {
-      alert('Please upload the Main Paper PDF first.');
-      return;
-    }
+    if (!mainFile) { alert('Please upload the Main Paper PDF first.'); return; }
 
-    // Reset UI
     resetSteps();
     clearLog();
     document.getElementById('error-banner').classList.remove('visible');
     document.getElementById('result-card').classList.remove('visible');
     document.getElementById('submit-btn').disabled = true;
     document.getElementById('submit-btn').innerHTML = `<div class="spinner"></div> Submitting…`;
-    setPipelineBadge('Starting…', '#FFF3CD', '#856404');
+    setPipelineBadge('Starting…', 'badge-muted');
 
     const form = new FormData();
     form.append('main_pdf', mainFile);
@@ -655,12 +685,9 @@
     form.append('large_model', document.getElementById('large-model').checked);
 
     try {
-      const res  = await fetch(`${API_BASE}/extract`, { method: 'POST', body: form });
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`HTTP ${res.status}: ${err}`);
-      }
-      const job  = await res.json();
+      const res = await fetch(`${API_BASE}/extract`, { method: 'POST', body: form });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      const job = await res.json();
       currentJobId = job.job_id;
       addLog(`Job created: ${currentJobId}`);
       document.getElementById('submit-btn').innerHTML = `<div class="spinner"></div> Extracting…`;
@@ -692,46 +719,71 @@
 
     addLog(`[${status}] ${message}`);
 
-    // Mark completed steps
     for (let i = 1; i < stepIdx; i++) setStep(i, 'complete');
     if (stepIdx > 0 && status !== 'done') setStep(stepIdx, 'active');
 
     if (status === 'done') {
       for (let i = 1; i <= 5; i++) setStep(i, 'complete');
-      setPipelineBadge('Complete', 'var(--green-light)', 'var(--green)');
+      setPipelineBadge('Complete', 'badge-green');
       showResult(data);
       resetSubmitBtn();
     } else if (status === 'failed') {
-      setPipelineBadge('Failed', '#FFECEC', '#C0392B');
+      setPipelineBadge('Failed', '');
+      document.getElementById('pipeline-status-badge').style.cssText = 'background:var(--red-bg);color:var(--red)';
       if (stepIdx > 0) setStep(stepIdx, 'error');
       showError(data.error || 'Extraction failed. See logs for details.');
       resetSubmitBtn();
     } else {
-      setPipelineBadge('Running', '#FFF3CD', '#856404');
+      setPipelineBadge('Running', '');
+      document.getElementById('pipeline-status-badge').style.cssText = 'background:#FFF3CD;color:#856404';
       pollStatus();
     }
   }
 
-  // ─── Result display ───────────────────────────────────────────────────────
+  // ── Result display ──────────────────────────────────────────────────────────
   function showResult(data) {
     const card = document.getElementById('result-card');
     card.classList.add('visible');
 
-    // Parse basic stats from TSV if needed (placeholder logic)
-    document.getElementById('stat-reactions').textContent = '—';
-    document.getElementById('stat-resolved').textContent  = '—';
-    document.getElementById('stat-pending').textContent   = '—';
+    // Count rows and resolved from TSV if provided
+    let reactions = 0, resolved = 0, pending = 0;
+    if (data.rows) {
+      reactions = data.rows.length;
+      data.rows.forEach(r => {
+        const hasResolved = Object.entries(r).some(([k,v]) =>
+          (k.endsWith('_cas') || k.endsWith('_smiles')) &&
+          v && v !== 'PENDING_CONVERSION' && v !== 'not reported'
+        );
+        const hasPending = Object.entries(r).some(([k,v]) =>
+          (k.endsWith('_cas') || k.endsWith('_smiles')) && v === 'PENDING_CONVERSION'
+        );
+        if (hasResolved) resolved++;
+        if (hasPending) pending++;
+      });
+    }
+
+    document.getElementById('stat-reactions').textContent = reactions || '—';
+    document.getElementById('stat-resolved').textContent  = resolved  || '—';
+    document.getElementById('stat-pending').textContent   = pending   || '—';
+
+    // QA note
+    const issues = Array.isArray(data.issues) ? data.issues.length : 0;
+    const qaDot  = document.getElementById('qa-dot');
+    const qaText = document.getElementById('qa-note-text');
+    if (issues === 0) {
+      qaDot.className = 'qa-dot ok';
+      qaText.textContent = 'QA passed · 0 issues';
+    } else {
+      qaDot.className = 'qa-dot';
+      qaText.textContent = `QA · ${issues} issue${issues > 1 ? 's' : ''}`;
+    }
 
     const dlBtn = document.getElementById('download-btn');
     dlBtn.href = `${API_BASE}/download/${currentJobId}`;
     dlBtn.setAttribute('download', `surf_extraction_${currentJobId}.tsv`);
-
-    if (data.error) {
-      addLog(`Review notes: ${data.error}`);
-    }
   }
 
-  // ─── Error display ────────────────────────────────────────────────────────
+  // ── Error display ───────────────────────────────────────────────────────────
   function showError(msg) {
     const banner = document.getElementById('error-banner');
     banner.textContent = `Error: ${msg}`;
@@ -742,7 +794,11 @@
     const btn = document.getElementById('submit-btn');
     btn.disabled = false;
     btn.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
       Extract SURF Data`;
   }
 </script>
