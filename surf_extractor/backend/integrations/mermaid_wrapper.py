@@ -16,17 +16,27 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Lazy imports – VisualHeist pulls in heavy ML deps (transformers, torch).
-# Falls back to text-only mode if deps are missing.
+# Lazy import – VisualHeist pulls in heavy ML deps (transformers, torch).
+# Cached so the warning fires only once; returns None if deps are missing.
 # ---------------------------------------------------------------------------
 
+_visualheist_fn = None
+_visualheist_checked = False
+
+
 def _try_import_visualheist():
+    global _visualheist_fn, _visualheist_checked
+    if _visualheist_checked:
+        return _visualheist_fn
+    _visualheist_checked = True
     try:
         from backend.vendor.visualheist.methods_visualheist import batch_pdf_to_figures_and_tables
-        return batch_pdf_to_figures_and_tables
+        _visualheist_fn = batch_pdf_to_figures_and_tables
+        logger.info("VisualHeist loaded successfully.")
     except Exception as exc:
         logger.warning("VisualHeist not available: %s – falling back to text-only mode.", exc)
-        return None
+        _visualheist_fn = None
+    return _visualheist_fn
 
 
 def _try_import_pdfplumber():

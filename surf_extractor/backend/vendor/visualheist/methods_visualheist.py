@@ -7,12 +7,8 @@ Vendored from MERMaid into surf_extractor.
 """
 
 import os
-from pdf2image import convert_from_path
-from transformers import AutoProcessor, AutoModelForCausalLM
-from huggingface_hub import hf_hub_download
 from unittest.mock import patch
 from typing import Union
-from transformers.dynamic_module_utils import get_imports
 from pathlib import Path
 import platform
 
@@ -24,6 +20,7 @@ BASE_SAFETENSORS_PATH = "https://huggingface.co/shixuanleong/visualheist-base/re
 
 def fixed_get_imports(filename: Union[str, os.PathLike]) -> list[str]:
     """Workaround to remove flash_attn from imports."""
+    from transformers.dynamic_module_utils import get_imports
     if not str(filename).endswith("modeling_florence2.py"):
         return get_imports(filename)
     imports = get_imports(filename)
@@ -34,6 +31,7 @@ def fixed_get_imports(filename: Union[str, os.PathLike]) -> list[str]:
 
 def _pdf_to_image(pdf_path):
     """Converts a pdf into a list of images."""
+    from pdf2image import convert_from_path
     system = platform.system()
     if system == "Windows":
         poppler_path = os.environ.get("POPPLER_PATH")
@@ -77,6 +75,7 @@ def _save_image_from_bbox(image, annotation, image_counter, output_dir, pdf_name
 
 def _create_model(model_id):
     """Initializes model used for segmenting tables and figures."""
+    from transformers import AutoProcessor, AutoModelForCausalLM
     with patch("transformers.dynamic_module_utils.get_imports", fixed_get_imports):
         model = AutoModelForCausalLM.from_pretrained(model_id, trust_remote_code=True)
         processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
