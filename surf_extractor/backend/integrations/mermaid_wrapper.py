@@ -212,11 +212,6 @@ def parse_pdfs(
         image_paths.extend(
             extract_images_from_pdf(main_pdf_path, image_output_dir, large_model)
         )
-        if si_pdf_path:
-            logger.info("Running VisualHeist on SI PDF…")
-            image_paths.extend(
-                extract_images_from_pdf(si_pdf_path, image_output_dir, large_model)
-            )
 
     images = images_to_base64(image_paths)
     logger.info(
