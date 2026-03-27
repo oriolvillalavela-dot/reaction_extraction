@@ -25,17 +25,30 @@ _visualheist_checked = False
 
 
 def _try_import_visualheist():
+    """Return the VisualHeist batch function, or None (checked once, result cached)."""
     global _visualheist_fn, _visualheist_checked
     if _visualheist_checked:
         return _visualheist_fn
     _visualheist_checked = True
+    missing = []
+    for pkg in ("pdf2image", "transformers", "torch"):
+        try:
+            __import__(pkg)
+        except ImportError:
+            missing.append(pkg)
+    if missing:
+        logger.warning(
+            "VisualHeist not available: missing packages %s – falling back to text-only mode. "
+            "Uncomment the VisualHeist section in requirements.txt to enable image extraction.",
+            ", ".join(missing),
+        )
+        return None
     try:
         from backend.vendor.visualheist.methods_visualheist import batch_pdf_to_figures_and_tables
         _visualheist_fn = batch_pdf_to_figures_and_tables
         logger.info("VisualHeist loaded successfully.")
     except Exception as exc:
-        logger.warning("VisualHeist not available: %s – falling back to text-only mode.", exc)
-        _visualheist_fn = None
+        logger.warning("VisualHeist failed to load: %s – falling back to text-only mode.", exc)
     return _visualheist_fn
 
 
